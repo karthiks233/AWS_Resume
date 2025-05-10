@@ -26,7 +26,7 @@ jobs:
       - name: SAM Deploy
         run: |
           sam deploy \
-            --stack-name my-resume-counter-stack \
+            --stack-name my-resume-counter-stack1 \
             --region ${{ secrets.AWS_REGION }} \
             --capabilities CAPABILITY_IAM \
             --no-confirm-changeset \
