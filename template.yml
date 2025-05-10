@@ -1,59 +1,56 @@
-# This AWS SAM template has been generated from your function's configuration. If
-# your function has one or more triggers, note that the AWS resources associated
-# with these triggers aren't fully specified in this template and include
-# placeholder values. Open this template in AWS Infrastructure Composer or your
-# favorite IDE and modify it to specify a serverless application with other AWS
-# resources.
-AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: An AWS Serverless Application Model template describing your function.
+Description: >
+  Serverless Visitor Counter Application
+
+Globals:
+  Function:
+    Timeout: 3
+    Tracing: Active
+    LoggingConfig:
+      LogFormat: JSON
+  Api:
+    TracingEnabled: true
+
 Resources:
-  VisitorCounter:
+  VisitorCounterTable:
+    Type: AWS::Serverless::SimpleTable
+    Properties:
+      PrimaryKey:
+        Name: id
+        Type: String
+      TableName: "resume" #Added Table Name
+
+  VisitorCounterFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: ./src
-      Description: ''
-      MemorySize: 128
-      Timeout: 3
-      Handler: index.handler
-      Runtime: nodejs18.x
+      CodeUri: VisitorCounter/  # Changed CodeUri to visitor_counter_lambda
+      Handler: app.lambda_handler
+      Runtime: python3.11
       Architectures:
         - x86_64
-      EphemeralStorage:
-        Size: 512
-      Environment:
-        Variables:
-          DYNAMODB_TABLE: resume
-      EventInvokeConfig:
-        MaximumEventAgeInSeconds: 21600
-        MaximumRetryAttempts: 2
-      PackageType: Zip
       Policies:
-        - Statement:
-            - Effect: Allow
-              Action:
-                - logs:CreateLogGroup
-              Resource: arn:aws:logs:eu-north-1:816069154772:*
-            - Effect: Allow
-              Action:
-                - logs:CreateLogStream
-                - logs:PutLogEvents
-              Resource:
-                - >-
-                  arn:aws:logs:eu-north-1:816069154772:log-group:/aws/lambda/VisitorCounter:*
-      RecursiveLoop: Terminate
-      SnapStart:
-        ApplyOn: None
+        - DynamoDBReadWriteAccess: # Added DynamoDB permissions
+            TableName: !Ref VisitorCounterTableFunction
+      Environment: # Added Environment Variables
+        Variables:
+          DYNAMODB_TABLE_NAME: !Ref VisitorCounterTableFunction # Pass table name to function
       Events:
-        Api1:
+        GetVisitorCount: # Changed the name of the event
           Type: Api
           Properties:
-            Path: /visitors
-            Method: GET
-        Api2:
-          Type: Api
-          Properties:
-            Path: /MyResource
-            Method: ANY
-      RuntimeManagementConfig:
-        UpdateRuntimeOn: Auto
+            Path: /VisitorCounter
+            Method: get
+
+Outputs:
+  VisitorCounterApi:
+    Description: API Gateway endpoint URL for the Visitor Counter API
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/VisitorCounter" # Correct way to get API URL
+  VisitorCounterFunctionArn:
+    Description: Visitor Counter Lambda Function ARN
+    Value: !GetAtt VisitorCounterFunction.Arn
+  VisitorCounterFunctionIamRoleArn:
+    Description: Implicit IAM Role created for Visitor Counter function
+    Value: !GetAtt VisitorCounterFunctionRole.Arn
+  VisitorCounterTableName: #Added Table Name Output
+    Description: Visitor Counter DynamoDB Table Name
+    Value: !Ref VisitorCounterTable
