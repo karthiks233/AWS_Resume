@@ -18,39 +18,40 @@ Resources:
       PrimaryKey:
         Name: id
         Type: String
-      TableName: "resume" #Added Table Name
+      TableName: "resume"
 
   VisitorCounterFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: VisitorCounter/  # Changed CodeUri to visitor_counter_lambda
+      CodeUri: VisitorCounter/
       Handler: app.lambda_handler
       Runtime: python3.11
       Architectures:
         - x86_64
       Policies:
-        - DynamoDBReadWriteAccess: # Added DynamoDB permissions
-            TableName: !Ref VisitorCounterTableFunction
-      Environment: # Added Environment Variables
+        - DynamoDBCrudPolicy:  # Changed from DynamoDBReadWriteAccess
+            TableName: !Ref VisitorCounterTable  # Fixed reference
+      Environment:
         Variables:
-          DYNAMODB_TABLE_NAME: !Ref VisitorCounterTableFunction # Pass table name to function
+          DYNAMODB_TABLE_NAME: !Ref VisitorCounterTable  # Fixed reference
       Events:
-        GetVisitorCount: # Changed the name of the event
+        GetVisitorCount:
           Type: Api
           Properties:
             Path: /VisitorCounter
             Method: get
+            Cors:  # Added CORS configuration
+              AllowMethods: ["GET"]
+              AllowHeaders: ["*"]
+              AllowOrigin: "'*'"
 
 Outputs:
   VisitorCounterApi:
-    Description: API Gateway endpoint URL for the Visitor Counter API
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/VisitorCounter" # Correct way to get API URL
+    Description: API Gateway endpoint URL
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/VisitorCounter"
   VisitorCounterFunctionArn:
-    Description: Visitor Counter Lambda Function ARN
+    Description: Lambda Function ARN
     Value: !GetAtt VisitorCounterFunction.Arn
-  VisitorCounterFunctionIamRoleArn:
-    Description: Implicit IAM Role created for Visitor Counter function
-    Value: !GetAtt VisitorCounterFunctionRole.Arn
-  VisitorCounterTableName: #Added Table Name Output
-    Description: Visitor Counter DynamoDB Table Name
+  VisitorCounterTableName:
+    Description: DynamoDB Table Name
     Value: !Ref VisitorCounterTable
