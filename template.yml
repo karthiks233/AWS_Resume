@@ -28,15 +28,18 @@ Resources:
       Architectures:
         - x86_64
       Policies:
-        - Statement:
-            - Sid: DynamoDBAccess
-              Effect: Allow
-              Action:
-                - dynamodb:GetItem
-                - dynamodb:PutItem
-                - dynamodb:UpdateItem
-                - dynamodb:Scan
-              Resource: !GetAtt VisitorCounterTable.Arn
+        - PolicyName: DynamoDBAccessPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Sid: DynamoDBAccess
+                Effect: Allow
+                Action:
+                  - dynamodb:GetItem
+                  - dynamodb:PutItem
+                  - dynamodb:UpdateItem
+                  - dynamodb:Scan
+                Resource: !GetAtt VisitorCounterTable.Arn
       Environment:
         Variables:
           DYNAMODB_TABLE_NAME: !Ref VisitorCounterTable
