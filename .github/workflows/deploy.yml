@@ -24,7 +24,7 @@ jobs:
           sam --version
 
       - name: Validate SAM template
-        run: sam validate --template template.yml
+        run: sam validate --template template.yaml
 
       - name: Debug project structure
         run: |
@@ -38,7 +38,7 @@ jobs:
       - name: SAM Deploy
         run: |
           sam deploy \
-            --template-file template.yml \
+            --template-file template.yaml \
             --stack-name my-resume-counter-stack1 \
             --region ${{ secrets.AWS_REGION }} \
             --capabilities CAPABILITY_IAM \
