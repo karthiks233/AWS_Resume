@@ -24,7 +24,7 @@ jobs:
           sam --version
 
       - name: Validate SAM template
-        run: sam validate --template template.yml
+        run: sam validate --template template.yaml
 
       - name: Debug project structure
         run: |
