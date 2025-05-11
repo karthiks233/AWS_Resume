@@ -45,11 +45,11 @@ Resources:
           Type: Api
           Properties:
             Path: /VisitorCounter
-            Method: get
-            Cors:
-              AllowMethods: ["GET"]
-              AllowHeaders: ["*"]
-              AllowOrigin: "'*'"
+            Method: any
+            Cors: true
+              # AllowMethods: ["ANY"]
+              # AllowHeaders: ["*"]
+              # AllowOrigin: "'*'"
 
 Outputs:
   VisitorCounterApi:
