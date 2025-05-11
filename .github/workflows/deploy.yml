@@ -2,12 +2,11 @@ name: SAM Deploy
 
 on:
   push:
-    branches: [ "main" ]  # Trigger on main branch pushes
+    branches: [ "main" ]
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
 
@@ -18,17 +17,32 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Install SAM CLI
+      - name: Install dependencies
         run: |
+          sudo apt-get update
           pip install --upgrade aws-sam-cli
           sam --version
+
+      - name: Validate SAM template
+        run: sam validate --template template.yml
+
+      - name: Debug project structure
+        run: |
+          echo "Current directory:"
+          pwd
+          echo "Files:"
+          ls -la
+          echo "VisitorCounter contents:"
+          ls -la VisitorCounter/
 
       - name: SAM Deploy
         run: |
           sam deploy \
+            --template-file template.yml \
             --stack-name my-resume-counter-stack1 \
             --region ${{ secrets.AWS_REGION }} \
             --capabilities CAPABILITY_IAM \
+            --resolve-s3 \
             --no-confirm-changeset \
-            --resolve-s3 \  # Let SAM automatically manage the bucket
-            --no-fail-on-empty-changeset
+            --no-fail-on-empty-changeset \
+            --debug
