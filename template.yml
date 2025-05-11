@@ -1,48 +1,63 @@
-name: SAM Deploy
+Transform: AWS::Serverless-2016-10-31
+Description: Serverless Visitor Counter Application
 
-on:
-  push:
-    branches: [ "main" ]
+Globals:
+  Function:
+    Timeout: 3
+    Tracing: Active
+    LoggingConfig:
+      LogFormat: JSON
+  Api:
+    TracingEnabled: true
 
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+Resources:
+  VisitorCounterTable:
+    Type: AWS::Serverless::SimpleTable
+    Properties:
+      PrimaryKey:
+        Name: id
+        Type: String
+      TableName: "resume"
 
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
+  VisitorCounterFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: VisitorCounter/
+      Handler: app.lambda_handler
+      Runtime: python3.11
+      Architectures:
+        - x86_64
+      Policies:
+        - Statement:
+            - Sid: DynamoDBAccess
+              Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:PutItem
+                - dynamodb:UpdateItem
+                - dynamodb:Scan
+              Resource: !GetAtt VisitorCounterTable.Arn
+      Environment:
+        Variables:
+          DYNAMODB_TABLE_NAME: !Ref VisitorCounterTable
+      Events:
+        GetVisitorCount:
+          Type: Api
+          Properties:
+            Path: /VisitorCounter
+            Method: any
+            Cors: 
+              AllowMethods: ["ANY"]
+              AllowHeaders: ["*"]
+              AllowOrigin: "'*'"
 
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          pip install --upgrade aws-sam-cli
-          sam --version
-
-      - name: Validate SAM template
-        run: sam validate --template template.yml
-
-      - name: Debug project structure
-        run: |
-          echo "Current directory:"
-          pwd
-          echo "Files:"
-          ls -la
-          echo "VisitorCounter contents:"
-          ls -la VisitorCounter/
-
-      - name: SAM Deploy
-        run: |
-          sam deploy \
-            --template-file template.yml \
-            --stack-name my-resume-counter-stack1 \
-            --region ${{ secrets.AWS_REGION }} \
-            --capabilities CAPABILITY_IAM \
-            --resolve-s3 \
-            --no-confirm-changeset \
-            --no-fail-on-empty-changeset \
-            --debug
+Outputs:
+  VisitorCounterApi:
+    Description: API Gateway endpoint URL
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/VisitorCounter"
+  VisitorCounterFunctionArn:
+    Description: Lambda Function ARN
+    Value: !GetAtt VisitorCounterFunction.Arn
+  VisitorCounterTableName:
+    Description: DynamoDB Table Name
+    Value: !Ref VisitorCounterTable
