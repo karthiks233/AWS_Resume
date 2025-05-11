@@ -1,81 +1,48 @@
-Transform: AWS::Serverless-2016-10-31
-Description: Serverless Visitor Counter Application
+name: SAM Deploy
 
-Globals:
-  Function:
-    Timeout: 3
-    Tracing: Active
-    LoggingConfig:
-      LogFormat: JSON
-  Api:
-    TracingEnabled: true
+on:
+  push:
+    branches: [ "main" ]
 
-Resources:
-  VisitorCounterTable:
-    Type: AWS::Serverless::SimpleTable
-    Properties:
-      PrimaryKey:
-        Name: id
-        Type: String
-      TableName: "resume"
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
 
-  VisitorCounterFunction:
-  Type: AWS::Serverless::Function
-  Properties:
-    CodeUri: VisitorCounter/
-    Handler: app.lambda_handler
-    Runtime: python3.11
-    Architectures:
-      - x86_64
-    Policies:
-      - PolicyName: VisitorCounterDynamoDBPolicy
-        PolicyDocument:
-          Version: '2012-10-17'
-          Statement:
-            - Sid: DynamoDBAccess
-              Effect: Allow
-              Action:
-                - dynamodb:GetItem
-                - dynamodb:PutItem
-                - dynamodb:UpdateItem
-                # remove Scan if you don’t need full-table reads
-                - dynamodb:Scan
-              Resource: !GetAtt VisitorCounterTable.Arn
-    Environment:
-      Variables:
-        DYNAMODB_TABLE_NAME: !Ref VisitorCounterTable
-    Events:
-      GetVisitorCount:
-        Type: Api
-        Properties:
-          Path: /VisitorCounter
-          Method: any
-          Cors:
-            AllowMethods: ["ANY"]
-            AllowHeaders: ["*"]
-            AllowOrigin: "'*'"
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
-      Environment:
-        Variables:
-          DYNAMODB_TABLE_NAME: !Ref VisitorCounterTable
-      Events:
-        GetVisitorCount:
-          Type: Api
-          Properties:
-            Path: /VisitorCounter
-            Method: ANY
-            Cors:
-              AllowOrigins: ["*"]
-              AllowMethods: ["ANY"]
-              AllowHeaders: ["*"]
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          pip install --upgrade aws-sam-cli
+          sam --version
 
-Outputs:
-  VisitorCounterApi:
-    Description: API Gateway endpoint URL
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/VisitorCounter"
-  VisitorCounterFunctionArn:
-    Description: Lambda Function ARN
-    Value: !GetAtt VisitorCounterFunction.Arn
-  VisitorCounterTableName:
-    Description: DynamoDB Table Name
-    Value: !Ref VisitorCounterTable
+      - name: Validate SAM template
+        run: sam validate --template template.yml
+
+      - name: Debug project structure
+        run: |
+          echo "Current directory:"
+          pwd
+          echo "Files:"
+          ls -la
+          echo "VisitorCounter contents:"
+          ls -la VisitorCounter/
+
+      - name: SAM Deploy
+        run: |
+          sam deploy \
+            --template-file template.yml \
+            --stack-name my-resume-counter-stack1 \
+            --region ${{ secrets.AWS_REGION }} \
+            --capabilities CAPABILITY_IAM \
+            --resolve-s3 \
+            --no-confirm-changeset \
+            --no-fail-on-empty-changeset \
+            --debug
