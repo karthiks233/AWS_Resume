@@ -7,19 +7,10 @@ Globals:
     Tracing: Active
     LoggingConfig:
       LogFormat: JSON
+  Api:
+    TracingEnabled: true
 
 Resources:
-  ## 1) Define your own API with CORS ##
-  VisitorCounterApi:
-    Type: AWS::Serverless::Api
-    Properties:
-      StageName: Prod
-      TracingEnabled: true
-      Cors:
-        AllowMethods: "'ANY'"
-        AllowHeaders: "'*'"
-        AllowOrigins: "'*'"    # <-- Make sure this key is present
-
   VisitorCounterTable:
     Type: AWS::Serverless::SimpleTable
     Properties:
@@ -36,20 +27,16 @@ Resources:
       Runtime: python3.11
       Architectures:
         - x86_64
-      ## 2) Attach DynamoDB policy (you should already have fixed this) ##
       Policies:
-        - PolicyName: VisitorCounterDynamoDBPolicy
-          PolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-              - Sid: DynamoDBAccess
-                Effect: Allow
-                Action:
-                  - dynamodb:GetItem
-                  - dynamodb:PutItem
-                  - dynamodb:UpdateItem
-                  - dynamodb:Scan
-                Resource: !GetAtt VisitorCounterTable.Arn
+        - Statement:
+            - Sid: DynamoDBAccess
+              Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:PutItem
+                - dynamodb:UpdateItem
+                - dynamodb:Scan
+              Resource: !GetAtt VisitorCounterTable.Arn
       Environment:
         Variables:
           DYNAMODB_TABLE_NAME: !Ref VisitorCounterTable
@@ -57,14 +44,17 @@ Resources:
         GetVisitorCount:
           Type: Api
           Properties:
-            RestApiId: !Ref VisitorCounterApi   # <— point at your explicit API
             Path: /VisitorCounter
             Method: ANY
+            Cors:  # CORRECT CORS CONFIGURATION HERE
+              AllowOrigin: "'*'"
+              AllowMethods: "'*'"
+              AllowHeaders: "'*'"
 
 Outputs:
-  VisitorCounterApiUrl:
+  VisitorCounterApi:
     Description: API Gateway endpoint URL
-    Value: !Sub "https://${VisitorCounterApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/VisitorCounter"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/VisitorCounter"
   VisitorCounterFunctionArn:
     Description: Lambda Function ARN
     Value: !GetAtt VisitorCounterFunction.Arn
