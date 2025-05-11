@@ -9,6 +9,10 @@ Globals:
       LogFormat: JSON
   Api:
     TracingEnabled: true
+    Cors:
+      AllowMethods: "'ANY'"
+      AllowHeaders: "'*'"
+      # AllowOrigins: "'*'"
 
 Resources:
   VisitorCounterTable:
@@ -45,11 +49,7 @@ Resources:
           Type: Api
           Properties:
             Path: /VisitorCounter
-            Method: any
-            Cors: 
-              AllowMethods: ["ANY"]
-              AllowHeaders: ["*"]
-              AllowOrigin: "'*'"
+            Method: ANY
 
 Outputs:
   VisitorCounterApi:
@@ -61,4 +61,3 @@ Outputs:
   VisitorCounterTableName:
     Description: DynamoDB Table Name
     Value: !Ref VisitorCounterTable
-
