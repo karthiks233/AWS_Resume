@@ -20,26 +20,41 @@ Resources:
       TableName: "resume"
 
   VisitorCounterFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: VisitorCounter/
-      Handler: app.lambda_handler
-      Runtime: python3.11
-      Architectures:
-        - x86_64
-      Policies:
-        - PolicyName: DynamoDBAccessPolicy
-          PolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-              - Sid: DynamoDBAccess
-                Effect: Allow
-                Action:
-                  - dynamodb:GetItem
-                  - dynamodb:PutItem
-                  - dynamodb:UpdateItem
-                  - dynamodb:Scan
-                Resource: !GetAtt VisitorCounterTable.Arn
+  Type: AWS::Serverless::Function
+  Properties:
+    CodeUri: VisitorCounter/
+    Handler: app.lambda_handler
+    Runtime: python3.11
+    Architectures:
+      - x86_64
+    Policies:
+      - PolicyName: VisitorCounterDynamoDBPolicy
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Sid: DynamoDBAccess
+              Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:PutItem
+                - dynamodb:UpdateItem
+                # remove Scan if you don’t need full-table reads
+                - dynamodb:Scan
+              Resource: !GetAtt VisitorCounterTable.Arn
+    Environment:
+      Variables:
+        DYNAMODB_TABLE_NAME: !Ref VisitorCounterTable
+    Events:
+      GetVisitorCount:
+        Type: Api
+        Properties:
+          Path: /VisitorCounter
+          Method: any
+          Cors:
+            AllowMethods: ["ANY"]
+            AllowHeaders: ["*"]
+            AllowOrigin: "'*'"
+
       Environment:
         Variables:
           DYNAMODB_TABLE_NAME: !Ref VisitorCounterTable
