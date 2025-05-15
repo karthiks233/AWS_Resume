@@ -1,0 +1,63 @@
+Transform: AWS::Serverless-2016-10-31
+Description: Serverless Visitor Counter Application
+
+Globals:
+  Function:
+    Timeout: 3
+    Tracing: Active
+    LoggingConfig:
+      LogFormat: JSON
+  Api:
+    TracingEnabled: true
+    Cors:
+      AllowMethods: "'ANY'"
+      AllowHeaders: "'*'"
+      # AllowOrigins: "'*'"
+
+Resources:
+  VisitorCounterTable:
+    Type: AWS::Serverless::SimpleTable
+    Properties:
+      PrimaryKey:
+        Name: id
+        Type: String
+      TableName: "resume"
+
+  VisitorCounterFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: VisitorCounter/
+      Handler: app.lambda_handler
+      Runtime: python3.11
+      Architectures:
+        - x86_64
+      Policies:
+        - Statement:
+            - Sid: DynamoDBAccess
+              Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:PutItem
+                - dynamodb:UpdateItem
+                - dynamodb:Scan
+              Resource: !GetAtt VisitorCounterTable.Arn
+      Environment:
+        Variables:
+          DYNAMODB_TABLE_NAME: !Ref VisitorCounterTable
+      Events:
+        GetVisitorCount:
+          Type: Api
+          Properties:
+            Path: /VisitorCounter
+            Method: ANY
+
+Outputs:
+  VisitorCounterApi:
+    Description: API Gateway endpoint URL
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/VisitorCounter"
+  VisitorCounterFunctionArn:
+    Description: Lambda Function ARN
+    Value: !GetAtt VisitorCounterFunction.Arn
+  VisitorCounterTableName:
+    Description: DynamoDB Table Name
+    Value: !Ref VisitorCounterTable
