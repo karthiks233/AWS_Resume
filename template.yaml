@@ -7,21 +7,33 @@ Globals:
     Tracing: Active
     LoggingConfig:
       LogFormat: JSON
-  Api:
-    TracingEnabled: true
-    Cors:
-      AllowMethods: "'ANY'"
-      AllowHeaders: "'*'"
-      # AllowOrigins: "'*'"
 
 Resources:
+  VisitorCounterApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: VisitorCounterApi
+      StageName: Prod
+      Cors:
+        AllowMethods:
+          - GET
+          - PUT
+          - POST
+          - DELETE
+          - OPTIONS
+          - HEAD
+          - PATCH
+        AllowHeaders:
+          - "*"
+        AllowOrigin: "'*'"
+
   VisitorCounterTable:
     Type: AWS::Serverless::SimpleTable
     Properties:
       PrimaryKey:
         Name: id
         Type: String
-      TableName: "resume"
+      TableName: "resume1"
 
   VisitorCounterFunction:
     Type: AWS::Serverless::Function
@@ -48,13 +60,14 @@ Resources:
         GetVisitorCount:
           Type: Api
           Properties:
+            RestApiId: !Ref VisitorCounterApi
             Path: /VisitorCounter
             Method: ANY
 
 Outputs:
   VisitorCounterApi:
     Description: API Gateway endpoint URL
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/VisitorCounter"
+    Value: !Sub "https://${VisitorCounterApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/VisitorCounter"
   VisitorCounterFunctionArn:
     Description: Lambda Function ARN
     Value: !GetAtt VisitorCounterFunction.Arn
