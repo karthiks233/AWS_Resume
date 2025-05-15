@@ -33,7 +33,7 @@ Resources:
       PrimaryKey:
         Name: id
         Type: String
-      TableName: "resume1"
+      TableName: "resume2"
 
   VisitorCounterFunction:
     Type: AWS::Serverless::Function
