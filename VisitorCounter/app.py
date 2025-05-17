@@ -5,7 +5,7 @@ from decimal import Decimal
 
 def lambda_handler(event, context):
     dynamodb = boto3.resource("dynamodb")
-    table = dynamodb.Table("resume")
+    table = dynamodb.Table("resume1")
 
     try:
         # Get current count
