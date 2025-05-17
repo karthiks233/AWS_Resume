@@ -25,7 +25,7 @@ Resources:
           - PATCH
         AllowHeaders:
           - "*"
-        AllowOrigin: 
+        AllowOrigins: 
           - "*"
 
   VisitorCounterTable:
