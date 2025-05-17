@@ -46,3 +46,7 @@ jobs:
             --no-confirm-changeset \
             --no-fail-on-empty-changeset \
             --debug
+
+      - name: Upload frontend to S3
+        run: |
+          aws s3 sync frontend/ s3://${{ secrets.S3_BUCKET_NAME }}/ --delete --acl public-read
