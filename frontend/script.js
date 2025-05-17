@@ -2,7 +2,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     const visitorCountElement = document.getElementById('visitor-count');
 
-    fetch('https://nn97cic8g4.execute-api.eu-north-1.amazonaws.com/prod/VisitorCounterPython')
+    fetch('https://jhxdbu6fna.execute-api.us-east-1.amazonaws.com/prod/VisitorCounter')
         .then(response => response.json())
         .then(data => {
             if (data && data.count !== undefined) {
