@@ -25,7 +25,8 @@ Resources:
           - PATCH
         AllowHeaders:
           - "*"
-        AllowOrigin: "'*'"
+        AllowOrigin: 
+          - "*"
 
   VisitorCounterTable:
     Type: AWS::Serverless::SimpleTable
