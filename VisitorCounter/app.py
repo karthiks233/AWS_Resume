@@ -2,11 +2,12 @@
 import boto3
 import json
 from decimal import Decimal
+import os
 
 def lambda_handler(event, context):
     dynamodb = boto3.resource("dynamodb")
-    table = dynamodb.Table("resume1")
-
+    table = dynamodb.Table(os.environ["DYNAMODB_TABLE_NAME"])
+    
     try:
         # Get current count
         get_response = table.get_item(Key={'id': '1'})
@@ -18,7 +19,7 @@ def lambda_handler(event, context):
             "headers": {
             "Access-Control-Allow-Origin": "*",  # <-- This is required!
             "Access-Control-Allow-Headers": "*", # <-- Optional, but recommended
-            # "Access-Control-Allow-Methods": "GET,OPTIONS,PUT" # <-- Optional, but recommended
+            "Access-Control-Allow-Methods": "GET,OPTIONS,PUT" # <-- Optional, but recommended
         },
             "body": json.dumps({"count": int(current_count)})
         }
@@ -38,7 +39,7 @@ def lambda_handler(event, context):
             "headers": {
                 "Access-Control-Allow-Origin": "*",  # <-- This is required!
                 "Access-Control-Allow-Headers": "*", # <-- Optional, but recommended
-                # "Access-Control-Allow-Methods": "GET,OPTIONS,PUT" # <-- Optional, but recommended
+                "Access-Control-Allow-Methods": "GET,OPTIONS,PUT" # <-- Optional, but recommended
             },
             "body": json.dumps({"message": "Failed", "error": str(e)})
         }
