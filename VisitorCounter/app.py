@@ -15,6 +15,11 @@ def lambda_handler(event, context):
         # Return response
         response = {
             "statusCode": 200,
+            "headers": {
+            "Access-Control-Allow-Origin": "*",  # <-- This is required!
+            "Access-Control-Allow-Headers": "*", # <-- Optional, but recommended
+            "Access-Control-Allow-Methods": "GET,OPTIONS" # <-- Optional, but recommended
+        },
             "body": json.dumps({"count": int(current_count)})
         }
 
@@ -32,3 +37,5 @@ def lambda_handler(event, context):
             "statusCode": 500,
             "body": json.dumps({"message": "Failed", "error": str(e)})
         }
+
+
