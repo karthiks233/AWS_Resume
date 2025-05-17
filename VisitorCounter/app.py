@@ -18,7 +18,7 @@ def lambda_handler(event, context):
             "headers": {
             "Access-Control-Allow-Origin": "*",  # <-- This is required!
             "Access-Control-Allow-Headers": "*", # <-- Optional, but recommended
-            # "Access-Control-Allow-Methods": "GET,OPTIONS" # <-- Optional, but recommended
+            # "Access-Control-Allow-Methods": "GET,OPTIONS,PUT" # <-- Optional, but recommended
         },
             "body": json.dumps({"count": int(current_count)})
         }
@@ -35,7 +35,10 @@ def lambda_handler(event, context):
     except Exception as e:
         return {
             "statusCode": 500,
+            "headers": {
+                "Access-Control-Allow-Origin": "*",  # <-- This is required!
+                "Access-Control-Allow-Headers": "*", # <-- Optional, but recommended
+                # "Access-Control-Allow-Methods": "GET,OPTIONS,PUT" # <-- Optional, but recommended
+            },
             "body": json.dumps({"message": "Failed", "error": str(e)})
         }
-
-
